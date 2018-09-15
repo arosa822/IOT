@@ -24,10 +24,8 @@ SHT1x sht1x(dataPin, clockPin);
 bool SMdebug= true;
 unsigned long debugMillis= 0;
 
-
 int pwrPin = 5;
 int sm = 0; 
-
 
 //Create an ESP8266 WifiClient class to connect to the MQTT server
 WiFiClient client;
@@ -38,6 +36,7 @@ Adafruit_MQTT_Client mqtt(&client, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO
 // Setup feeds for temperature & humidity
 Adafruit_MQTT_Publish temperature = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/temperature_d22");
 Adafruit_MQTT_Publish humidity = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/humidity_d22");
+Adafruit_MQTT_Publish soilMoisture = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/Soil\ Moisture");
 
 unsigned long previousMillis = 0;
 const long postInt = 1000*30; 
@@ -49,15 +48,13 @@ void setup(void) {
 
 
     Serial.begin(9600);
+
     pinMode(pwrPin, OUTPUT);
-
-
 
     delay(10);
 
     Serial.print(F("Connecting to... "));
     Serial.println(WLAN_SSID);
-
     WiFi.begin(WLAN_SSID, WLAN_PASS);
 
 
@@ -77,14 +74,14 @@ void loop(void) {
     
     if (SMdebug & currentMillis - debugMillis >= readInt){
         int debug = analogRead(A0);
-        Serial.println("***debug***");
-        Serial.print("sm = ");
+        //Serial.println("***debug***");
+        //Serial.print("sm = ");
         Serial.println(debug);
         debugMillis = currentMillis;
     }
 
-
-    if (currentMillis - previousMillis >= postInt){
+    //Main loop - publish to adafruit
+    if (!SMdebug && currentMillis - previousMillis >= postInt){
 
             // Reading temperature or humidity takes about 250 milliseconds!
         // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
@@ -94,7 +91,8 @@ void loop(void) {
         // Read temperature as Fahrenheit (isFahrenheit = true)
          float f = sht1x.readTemperatureF();
 
-         int sm = readSoil();
+        //Read Soil Moisure 
+         int sm = analogRead(A0);
 
         // Check if any reads failed and exit early (to try again).
         if (isnan(h) || isnan(t) || isnan(f)) 
@@ -127,10 +125,14 @@ void loop(void) {
             else
                 Serial.println(F("Humidity published!"));
 
+            if (! soilMoisture.publish(sm))
+                Serial.println(F("Failed to publish Soil Moisture"));
+
             previousMillis = currentMillis;
         }
     }
 
+   //keep mqtt connection
    ping();
 
 }

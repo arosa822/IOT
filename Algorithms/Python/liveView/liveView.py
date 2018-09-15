@@ -8,7 +8,7 @@ Sensor1= []
 #Sensor2=[]
 #Sensor3=[]
 #Sensor4=[]
-arduinoData = serial.Serial('/dev/ttyACM0') #Creating our serial object named arduinoData
+arduinoData = serial.Serial('/dev/ttyUSB0') #Creating our serial object named arduinoData
 plt.ion() #Tell matplotlib you want interactive mode to plot live data
 cnt=0
 

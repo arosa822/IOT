@@ -1,10 +1,10 @@
-#IOT Projects
+# IOT Projects
 
 This folder contains IOT projects primarily using ESP model uC's.
 
 They are arranged per platform used for integrating sensor data. 
 
-###Open source platforms
+### Open source platforms
 * Adafruit IO 
     * esp8266
 
@@ -15,7 +15,7 @@ They are arranged per platform used for integrating sensor data.
 
 Additional platforms to explore...
 
-###Algorithms
+### Algorithms
 Folder containing usefull algorithms written in Python and C++
 
 * Serial Read (C++)

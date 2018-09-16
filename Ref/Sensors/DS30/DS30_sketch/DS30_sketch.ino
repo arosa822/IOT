@@ -16,20 +16,20 @@ void setup() {
 
     Serial.begin(9600);
     Wire.begin ();
-    pinMode(13, OUTPUT); // address of the Arduino LED indicator
+    pinMode(5, OUTPUT); // address of the Arduino LED indicator
     Serial.println("Application Note AN-102: Interface Arduino to K-30");
 }
 ///////////////////////////////////////////////////////////////////
 // Function : int readCO2()
 // Returns : CO2 Value upon success, 0 upon checksum failure
 // Assumes : - Wire library has been imported successfully.
-// - LED is connected to IO pin 13
+// - LED is connected to IO pin 5
 // - CO2 sensor address is defined in co2_addr
 ///////////////////////////////////////////////////////////////////
 int readCO2(){
         
     int co2_value = 0; // Store the CO2 value inside this variable.
-    digitalWrite(13, HIGH); // turn on LED
+    digitalWrite(5, HIGH); // turn on LED
     // On most Arduino platforms this pin is used as an indicator light.
     //////////////////////////
     /* Begin Write Sequence */
@@ -85,7 +85,7 @@ int readCO2(){
 
     if (sum == buffer[3]){
         // Success!
-        digitalWrite(13, LOW);
+        digitalWrite(5, LOW);
         return co2_value;
     }
 
@@ -95,7 +95,7 @@ int readCO2(){
         Checksum failure can be due to a number of factors,
         fuzzy electrons, sensor busy, etc.
         */
-        digitalWrite(13, LOW);
+        digitalWrite(5, LOW);
         return 0;
     }
 }

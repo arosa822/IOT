@@ -151,5 +151,28 @@ void olValue(float thefloat){
         delay(1000);
 }
 
+void GETRequest(const char* theServer, const char* theObject){
+
+    //Create object of class HTTPClient
+    HTTPClient http;
+
+    int n;
+
+    n = sprintf(buffer,"%s%s",theServer,theObject);
+
+    //Serial.println(buffer);
+
+    //call the 'begin' method and pass through the URL
+    http.begin(buffer);
+    int httpCode = http.GET(); 
+
+    String thePayload = http.getString();
+
+    Serial.println(thePayload);
+
+    http.end();
+
+}
+
 
 

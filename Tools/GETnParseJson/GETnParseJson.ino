@@ -1,6 +1,9 @@
 #include <Arduino.h>
 #include <U8g2lib.h>
 #include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
+#include <ArduinoJson.h>
+
 
 
 #ifdef U8X8_HAVE_HW_SPI
@@ -9,12 +12,21 @@
 #ifdef U8X8_HAVE_HW_I2C
 #include <Wire.h>
 #endif
-// Uncomment whatever type you're using!
-//#define DHTTYPE DHT11   // DHT 11
 
-#define WLAN_SSID       ""
-#define WLAN_PASS       ""
-// Adafruit IO
+
+#define SSID       "CenturyLink0029"
+#define PASS       "fd663ua66347d7"
+
+
+//test case for parsing json
+bool testJson = true; 
+char JsonTest[] = "{\"sensor\":\"gps\",\"time\":1351824120,\"data\":[48.756080,2.302038]}";
+
+//globals for GET request
+char json[] = "{\"id\"\:6,\"v\":\"M-1.1.6\",\"st\":0,\"m\":3781,\"b\":0}";
+char buffer[500];
+String response;
+const char* Server = "http://proxmox1.onsite.cropcircle.io/api/raw?q=";
 
 /*
   U8glib Example Overview:
@@ -42,11 +54,9 @@ U8G2_SSD1306_128X32_UNIVISION_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ 16, /* clock=*/
         delay(1000);
     }*/
 
-WiFiClient client;
-
 unsigned long previousMillis = 0;
 const long postInt = 1000*30; 
-const long readInt = 1000;
+const long GETint = 1000;
 
 void setup(void) {
 
@@ -54,44 +64,36 @@ void setup(void) {
 
     Serial.begin(9600);
 
-    dht.begin();
-
     delay(10);
 
-    Serial.print(F("Connecting to... "));
-    Serial.println(WLAN_SSID);
-
-    WiFi.begin(WLAN_SSID, WLAN_PASS);
-
-    while (WiFi.status() != WL_CONNECTED) 
-    {
-        delay(500);
-        olMessage("Connecting to ");
-        olMessage2(WLAN_SSID);
-    }
+    WiFi.begin(SSID,PASS);
 
     Serial.println();
 
-    olMessage("Connected!");
+    if(testJson == true){
+        JsonTester();
+    }
 
-    u8g2.sendBuffer();
 
     delay(2000);
-
-    connect();
-
-    olMessage("Initializing!");
 }
 
 void loop(void) {
 
     unsigned long currentMillis = millis();
 
-    if (currentMillis - previousMillis >= postInt){
-  
+    if (currentMillis - previousMillis >= GETint){
 
-            previousMillis = currentMillis;
-        }
+
+            if (testJson == false){
+                
+                GETRequest(Server,json);            
+            }
+            else{
+                Serial.println("Test mode...");
+            }
+
+         previousMillis = currentMillis;
     }
 }
 
@@ -171,8 +173,34 @@ void GETRequest(const char* theServer, const char* theObject){
     Serial.println(thePayload);
 
     http.end();
-
 }
+
+void JsonTester(){
+    StaticJsonBuffer<200> jsonBuffer;
+    JsonObject& root = jsonBuffer.parseObject(JsonTest);
+
+    //check to make sure that json test succeded
+    if (!root.success()) {
+    Serial.println("parseObject() failed");
+    return;
+    }
+
+    //Fetch Values  
+    const char* sensor = root["sensor"];
+    long time = root["time"];
+    double latitude = root["data"][0];
+    double longitude = root["data"][1];
+
+    // Print values.
+    Serial.println(sensor);
+    Serial.println(time);
+    Serial.println(latitude, 6);
+    Serial.println(longitude, 6);
+
+  }
+
+
+
 
 
 

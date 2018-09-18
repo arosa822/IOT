@@ -13,20 +13,22 @@
 #include <Wire.h>
 #endif
 
-
-#define SSID       "CenturyLink0029"
-#define PASS       "fd663ua66347d7"
-
-
 //test case for parsing json
-bool testJson = true; 
+bool testJson = false; 
 char JsonTest[] = "{\"sensor\":\"gps\",\"time\":1351824120,\"data\":[48.756080,2.302038]}";
 
+//KEYS - YOU MUST UPDATE THIS WITH YOUR OWN INFORMATION
+
+#define SSID       "#"
+#define PASS       "#"
+
 //globals for GET request
-char json[] = "{\"id\"\:6,\"v\":\"M-1.1.6\",\"st\":0,\"m\":3781,\"b\":0}";
+char json[] = "#;
 char buffer[500];
 String response;
-const char* Server = "http://proxmox1.onsite.cropcircle.io/api/raw?q=";
+const char* Server = "#;
+
+//END OF KEYS SECTION
 
 /*
   U8glib Example Overview:
@@ -56,7 +58,7 @@ U8G2_SSD1306_128X32_UNIVISION_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ 16, /* clock=*/
 
 unsigned long previousMillis = 0;
 const long postInt = 1000*30; 
-const long GETint = 1000;
+const long GETint = 2000;
 
 void setup(void) {
 
@@ -87,7 +89,9 @@ void loop(void) {
 
             if (testJson == false){
                 
-                GETRequest(Server,json);            
+                response = GETRequest(Server,json);   
+                Serial.println(response);     
+                JsonParser(response);
             }
             else{
                 Serial.println("Test mode...");
@@ -122,7 +126,7 @@ void displayData(float f, float h ){
 }
   
 
-void olMessage(char* theString){
+void olMessage(const char* theString){
         u8g2.clearBuffer();					// clear the internal memory
         u8g2.setFont(u8g2_font_amstrad_cpc_extended_8f);
         u8g2.setCursor(0,10);
@@ -133,7 +137,7 @@ void olMessage(char* theString){
     
 }
 
-void olMessage2(char* theString){
+void olMessage2(const char* theString){
         //u8g2.clearBuffer();					// clear the internal memory
         u8g2.setFont(u8g2_font_amstrad_cpc_extended_8f);
         u8g2.setCursor(0,20);
@@ -153,7 +157,7 @@ void olValue(float thefloat){
         delay(1000);
 }
 
-void GETRequest(const char* theServer, const char* theObject){
+String GETRequest(const char* theServer, const char* theObject){
 
     //Create object of class HTTPClient
     HTTPClient http;
@@ -173,6 +177,22 @@ void GETRequest(const char* theServer, const char* theObject){
     Serial.println(thePayload);
 
     http.end();
+
+    return thePayload;
+}
+
+void JsonParser(String theJson){
+    StaticJsonBuffer<400> jsonBuffer;
+    JsonObject& root = jsonBuffer.parseObject(theJson);
+
+    if (!root.success()) {
+        Serial.println("parseObject() failed");
+        return;
+    }
+
+    const char* sensor = root["i4"][0];
+    Serial.println(sensor);
+    olMessage(sensor);
 }
 
 void JsonTester(){
@@ -196,7 +216,6 @@ void JsonTester(){
     Serial.println(time);
     Serial.println(latitude, 6);
     Serial.println(longitude, 6);
-
   }
 
 

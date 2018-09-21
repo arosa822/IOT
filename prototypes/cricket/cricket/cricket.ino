@@ -7,40 +7,68 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 #include <SHT1x.h>
+#include "DHT.h"
 
 //ADAFRUIT DEPENDANCIES
 #include "Adafruit_MQTT.h"
 #include "Adafruit_MQTT_Client.h"
 
+//For outputs
+#include "AdafruitIO_WiFi.h"
 
 //KEYS-MUST UPLOAD WITH CORRECT KEYS FOR THIS TO WORK
 const char* ssid = "#";
 const char* password = "#";
 
 // Adafruit IO
-#define AIO_SERVER      "#"
-#define AIO_SERVERPORT  #
+#define AIO_SERVER      "io.adafruit.com"
+#define AIO_SERVERPORT  1883
 #define AIO_USERNAME    "#"
 #define AIO_KEY         "#"
 
+#define WIFI_SSID       "#"
+#define WIFI_PASS       "#"
+
 #define DHTPIN 0     // what digital pin we're connected to
+#define DHTTYPE DHT22 
+
+//for output section
+#define IO_USERNAME    "#"
+#define IO_KEY         "#"
+DHT dht(DHTPIN, DHTTYPE);
+
 const int redLed = 12;
 unsigned long previousMillis = 0;
-const long postInt = 1000*30; 
+const long postInt = 1000*5; 
 const long readInt = 1000;
 float h;
 float f;
+float t;
+
+//pinouts
+int dhtPwr = 14;
+
+//LED pins power to violet and white led's
+int vioPwr = 15;
+int whtPwr = 5;
 
 //Create an ESP8266 WifiClient class to connect to the MQTT server
 WiFiClient client;
 
 //ADAFRUIT
 Adafruit_MQTT_Client mqtt(&client, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO_KEY);
+//need for control on the adafruit side of things
 
+AdafruitIO_WiFi io(IO_USERNAME, IO_KEY, ssid, password);
 // Setup feeds for temperature & humidity
+
 Adafruit_MQTT_Publish fruitPrint = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/Serial_test");
-//Adafruit_MQTT_Publish humidity = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/humidity_d22");
-//Adafruit_MQTT_Publish soilMoisture = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/Soil\ Moisture");
+Adafruit_MQTT_Publish temperature = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/temperature");
+Adafruit_MQTT_Publish humidity = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/Humidity");
+
+//DigitalOut
+
+AdafruitIO_Feed *digital = io.feed("digital");
 
 void setup() {
 
@@ -94,9 +122,21 @@ ArduinoOTA.onStart([]() {
     Serial.println(WiFi.localIP());
 
 //DO NOT CHANGE ANYTHING ABOVE THIS LINE OR OTA WILL NOT WORK!!!
+    
+    io.connect();
 
-pinMode(redLed, OUTPUT);
+    pinMode(dhtPwr, OUTPUT);
+    pinMode(whtPwr, OUTPUT);
+    pinMode(vioPwr, OUTPUT);   
 
+    digital->onMessage(handleMessage);
+
+    while(io.status() < AIO_CONNECTED) {
+        Serial.print(".");
+        delay(500);
+    }
+
+    digital->get();
 }
 
 void loop() {
@@ -104,21 +144,75 @@ void loop() {
     ArduinoOTA.handle();// this line must be kept for OTA ubdates
     //DO NOT DELETE THIS LINE
 
+    // io.run(); is required for all sketches.
+    // it should always be present at the top of your loop
+    // function. it keeps the client connected to
+    // io.adafruit.com, and processes any incoming data.
+    io.run();
+
+    digitalWrite(dhtPwr,HIGH);
+    //digitalWrite(whtPwr, HIGH);
+    digitalWrite(vioPwr, LOW);
+
     //Code Base starts below this line 
     unsigned long currentMillis = millis();
 
     if (currentMillis - previousMillis >= postInt){
+ 
+        digitalWrite(vioPwr, HIGH);
+        
 
-         if (! fruitPrint.publish("This is another Test"))
-                Serial.println(F("Failed to publish temperature"));
+        // Reading temperature or humidity takes about 250 milliseconds!
+        // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
+        h = dht.readHumidity();
 
+        // Read temperature as Celsius (the default)
+        t = dht.readTemperature();
+
+        // Read temperature as Fahrenheit (isFahrenheit = true)
+        f = dht.readTemperature(true);
+
+        // Check if any reads failed and exit early (to try again).
+        if (isnan(h) || isnan(t) || isnan(f)) 
+        {
+            Serial.println("Failed to read from DHT sensor!");
+            return;
+        }
+
+        else{
+                
+            Serial.println(h);
+            Serial.println(f);
+        }
+
+        if (! fruitPrint.publish("This is another Test"))
+            Serial.println(F("Failed to publish Serial"));
+        else 
+            Serial.println(F("Serial Published!"));
+
+        if (! temperature.publish(f))
+             Serial.println(F("Failed to publish temperature"));
+        else 
+            Serial.println(F("temperature published"));
+
+        if (! humidity.publish(h))
+            Serial.println(F("Failed to publish humidity!"));
+        else
+            Serial.println(F("Humidity Published!"));
+
+        previousMillis = currentMillis;   
     }
     
     ping();
 
-}
+    if (h > 50){
+        digitalWrite(whtPwr, HIGH);
+    }
+    else {
+        digitalWrite(whtPwr,LOW);
+    }
 
-
+    }
 
 void ping(void){
 
@@ -159,4 +253,18 @@ void connect() {
   }
 
   Serial.println(F("Adafruit IO Connected!"));
+}
+
+void handleMessage(AdafruitIO_Data *data) {
+ 
+  Serial.print("received <- ");
+ 
+  if(data->toPinLevel() == HIGH)
+    Serial.println("HIGH");
+  else
+    Serial.println("LOW");
+ 
+  // write the current state to the led
+  digitalWrite(whtPwr, data->toPinLevel());
+ 
 }

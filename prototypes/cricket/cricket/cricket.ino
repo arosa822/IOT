@@ -59,7 +59,7 @@ WiFiClient client;
 Adafruit_MQTT_Client mqtt(&client, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO_KEY);
 //need for control on the adafruit side of things
 
-AdafruitIO_WiFi io(IO_USERNAME, IO_KEY, ssid, password);
+AdafruitIO_WiFi io(IO_USERNAME, IO_KEY, WIFI_SSID, WIFI_PASS);
 // Setup feeds for temperature & humidity
 
 Adafruit_MQTT_Publish fruitPrint = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/Serial_test");
@@ -205,6 +205,8 @@ void loop() {
     
     ping();
 
+
+    //TEST FOR FEEDBACK 
     if (h > 50){
         digitalWrite(whtPwr, HIGH);
     }
@@ -212,7 +214,7 @@ void loop() {
         digitalWrite(whtPwr,LOW);
     }
 
-    }
+}
 
 void ping(void){
 

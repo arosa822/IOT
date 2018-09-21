@@ -39,7 +39,7 @@ Cons
 
 Ubidots
 
-(just begining to explore this option)
+(just begining to explore this option due to white label features) 
 
 
 # MCu

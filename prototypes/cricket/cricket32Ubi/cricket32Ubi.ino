@@ -6,11 +6,24 @@
 
 #include "config.h"
 #include <ESP8266WiFi.h>
-
+#include "UbidotsESPMQTT.h"
+#include <SoftwareSerial.h> 
 
 int HTTPPORT = 80;
 
 WiFiClient clientUbi;
+
+
+    int rly = 14;
+    float temp;
+    float ctemp;
+    float ftemp;
+    float humidity;
+    float ppm;
+    unsigned int sensorData[2];
+    
+
+//Ubidots client(TOKEN);
 
 /********************************
  * Auxiliar Functions
@@ -20,7 +33,7 @@ WiFiClient clientUbi;
  * @arg variable the body of type char
  * @return dataLen the length of the variable
  */
-
+// for posting data
 int dataLen(char* variable) {
   uint8_t dataLen = 0;
   for (int i = 0; i <= 250; i++) {
@@ -34,12 +47,6 @@ int dataLen(char* variable) {
 
 }
 
-    float temp;
-    float ctemp;
-    float ftemp;
-    float humidity;
-    float ppm;
-    unsigned int sensorData[2];
 
 void setup()
 {
@@ -61,6 +68,10 @@ void setup()
         Serial.println(F("IP address: "));
         Serial.println(WiFi.localIP());
 
+
+    pinMode(rly,OUTPUT);
+    //digitalWrite(rly,LOW);
+
 }
 
 void loop()
@@ -71,10 +82,13 @@ void loop()
 
     GetGas();
         delay(500);
-
-    postData(humidity,"humidity");
+    
+    //put this into it's own time state 
+    postData(humidity,"humidity"); 
     postData(ftemp,"temperature");
     postData(ppm,"gas");
+
+
 
 
 }

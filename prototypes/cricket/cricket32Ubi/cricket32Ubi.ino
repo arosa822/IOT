@@ -7,11 +7,7 @@
 #include "config.h"
 #include <ESP8266WiFi.h>
 
-const char* DEVICE_LABEL = "feather-huzzah"; // Your device label
-const char* VARIABLE_LABEL = "temperature"; // Your variable label
-const char* USER_AGENT = "ESP8266";
-const char* VERSION = "1.0";
-const char* HTTPSERVER = "industrial.api.ubidots.com";
+
 int HTTPPORT = 80;
 
 WiFiClient clientUbi;
@@ -38,19 +34,18 @@ int dataLen(char* variable) {
 
 }
 
-
     float temp;
     float ctemp;
     float ftemp;
     float humidity;
     float ppm;
-    unsigned int data[2];
+    unsigned int sensorData[2];
 
 void setup()
 {
   // Initialise I2C communication as MASTER
   Wire.begin();
-  
+
   // Initialise serial communication, set baud rate = 9600
   Serial.begin(9600);
 
@@ -72,27 +67,16 @@ void loop()
 {
 
     GetTempHumid();
-
-        // Output data to serial monitor
-        Serial.print("Relative humidity : ");
-        Serial.print(humidity);
-        Serial.println(" % RH");
-        Serial.print("Temperature in Celsius : ");
-        Serial.print(ctemp);
-        Serial.println(" C");
-        Serial.print("Temperature in Fahrenheit : ");
-        Serial.print(ftemp);
-        Serial.println(" F");
         delay(500);
-    
+
     GetGas();
-
-        // Output data to serial monitor
-        Serial.print("Gas Concentration : ");
-        Serial.print(ppm);
-        Serial.println(" ppm");
         delay(500);
-        
+
+    postData(humidity,"humidity");
+    postData(ftemp,"temperature");
+    postData(ppm,"gas");
+
+
 }
 
 void GetTempHumid(){
@@ -112,12 +96,12 @@ void GetTempHumid(){
     // humidity msb, humidity lsb 
     if(Wire.available() == 2)
     {
-      data[0] = Wire.read();
-      data[1] = Wire.read();
+      sensorData[0] = Wire.read();
+      sensorData[1] = Wire.read();
     }
     
     // Convert the data
-    humidity  = ((data[0] * 256.0) + data[1]);
+    humidity  = ((sensorData[0] * 256.0) + sensorData[1]);
     humidity = ((125 * humidity) / 65536.0) - 6;
 
     // Start I2C transmission
@@ -135,12 +119,12 @@ void GetTempHumid(){
     // temp msb, temp lsb
     if(Wire.available() == 2)
     {
-      data[0] = Wire.read();
-      data[1] = Wire.read();
+      sensorData[0] = Wire.read();
+      sensorData[1] = Wire.read();
     }
 
     // Convert the data
-    temp  = ((data[0] * 256.0) + data[1]);
+    temp  = ((sensorData[0] * 256.0) + sensorData[1]);
     ctemp = ((175.72 * temp) / 65536.0) - 46.85;
     ftemp = ctemp * 1.8 + 32;
 
@@ -161,13 +145,66 @@ void GetGas(){
     // raw_adc msb, raw_adc lsb
     if (Wire.available() == 2)
     {
-        data[0] = Wire.read();
-        data[1] = Wire.read();
+        sensorData[0] = Wire.read();
+        sensorData[1] = Wire.read();
     }
 
     // Convert the data to 12-bits
-    int raw_adc = ((data[0] & 0x0F) * 256) + data[1];
+    int raw_adc = ((sensorData[0] & 0x0F) * 256) + sensorData[1];
     ppm = (1.99 * raw_adc) / 4095.0 + 0.01;
 
 
+}
+
+void postData(float theData, const char* theVARIABLE_LABEL){
+
+    char* body = (char *) malloc(sizeof(char) * 150);
+    char* data = (char *) malloc(sizeof(char) * 300);
+    /* Space to store values to send */
+    char str_val[10];
+
+    /* Read the sensor from the analog input*/
+    float sensor_value = theData;
+
+    /*---- Transforms the values of the sensors to char type -----*/
+    /* 4 is mininum width, 2 is precision; float value is copied onto str_val*/
+    dtostrf(sensor_value, 4, 2, str_val);
+
+    /* Builds the body to be send into the request*/ 
+    sprintf(body, "{\"%s\":%s}", theVARIABLE_LABEL, str_val);
+
+    /* Builds the HTTP request to be POST */
+    sprintf(data, "POST /api/v1.6/devices/%s", DEVICE_LABEL);
+    sprintf(data, "%s HTTP/1.1\r\n", data);
+    sprintf(data, "%sHost: things.ubidots.com\r\n", data);
+    sprintf(data, "%sUser-Agent: %s/%s\r\n", data, USER_AGENT, VERSION);
+    sprintf(data, "%sX-Auth-Token: %s\r\n", data, TOKEN);
+    sprintf(data, "%sConnection: close\r\n", data);
+    sprintf(data, "%sContent-Type: application/json\r\n", data);
+    sprintf(data, "%sContent-Length: %d\r\n\r\n", data, dataLen(body));
+    sprintf(data, "%s%s\r\n\r\n", data, body);
+
+    /* Initial connection */
+    clientUbi.connect(HTTPSERVER, HTTPPORT);
+
+    /* Verify the client connection */
+    if (clientUbi.connect(HTTPSERVER, HTTPPORT)) {
+        Serial.println(F("Posting your variables: "));
+        Serial.println(data);
+        /* Send the HTTP Request */
+        clientUbi.print(data);
+    }
+
+    /* While the client is available read the response of the server */
+    while (clientUbi.available()) {
+        char c = clientUbi.read();
+        Serial.write(c);
+    }
+    /* Free memory */
+    free(data);
+    free(body);
+    /* Stop the client */
+    clientUbi.stop();
+    /* Five second delay */
+    delay(5000);
 }

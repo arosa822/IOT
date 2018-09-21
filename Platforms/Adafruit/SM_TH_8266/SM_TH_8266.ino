@@ -3,8 +3,6 @@
 #include "Adafruit_MQTT.h"
 #include "Adafruit_MQTT_Client.h"
 #include <SHT1x.h>
-#define DHTPIN 0     // what digital pin we're connected to
-
 
 // WiFi parameters
 #define WLAN_SSID       "#"

@@ -1,6 +1,5 @@
 //Created on 9/7/18
 //tool for flashing esp devices OTA
-// added function to change light output
 
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
@@ -9,16 +8,12 @@
 #include <SHT1x.h>
 #include "DHT.h"
 
-//ADAFRUIT DEPENDANCIES
+//ADAFRUIT DEPENDANCIES - DATA FEEDS
 #include "Adafruit_MQTT.h"
 #include "Adafruit_MQTT_Client.h"
 
 //For outputs
 #include "AdafruitIO_WiFi.h"
-
-//KEYS-MUST UPLOAD WITH CORRECT KEYS FOR THIS TO WORK
-const char* ssid = "#";
-const char* password = "#";
 
 // Adafruit IO
 #define AIO_SERVER      "io.adafruit.com"
@@ -32,20 +27,19 @@ const char* password = "#";
 #define DHTPIN 0     // what digital pin we're connected to
 #define DHTTYPE DHT22 
 
-//for output section
-#define IO_USERNAME    "#"
-#define IO_KEY         "#"
 DHT dht(DHTPIN, DHTTYPE);
 
 const int redLed = 12;
 unsigned long previousMillis = 0;
 const long postInt = 1000*5; 
 const long readInt = 1000;
+
+//data
 float h;
 float f;
 float t;
 
-//pinouts
+//temp/humid pinouts
 int dhtPwr = 14;
 
 //LED pins power to violet and white led's
@@ -59,7 +53,7 @@ WiFiClient client;
 Adafruit_MQTT_Client mqtt(&client, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO_KEY);
 //need for control on the adafruit side of things
 
-AdafruitIO_WiFi io(IO_USERNAME, IO_KEY, WIFI_SSID, WIFI_PASS);
+AdafruitIO_WiFi io(AIO_USERNAME, AIO_KEY, WIFI_SSID, WIFI_PASS);
 // Setup feeds for temperature & humidity
 
 Adafruit_MQTT_Publish fruitPrint = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/Serial_test");
@@ -77,7 +71,7 @@ void setup() {
 
 
     WiFi.mode(WIFI_STA);
-    WiFi.begin(ssid, password);
+    WiFi.begin(WIFI_SSID, WIFI_PASS);
 
     while (WiFi.waitForConnectResult() != WL_CONNECTED) {
 

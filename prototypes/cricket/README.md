@@ -5,15 +5,42 @@ This folder contains a functional prototype including hardware setup and code ba
 # About
 This prototype is in the alpha stage of conceptualization, the idea is to have a light weight wireless module complete with OTA, Low Power and temp/ humidity feedback trigers. 
 
+Two LED lights will be attached to pins for debugging.  The one of the lights will be for debugging purposes during OTA flashing.  One will be used to demonstrate triggers and wireless controls (i.e. phone apps or BLE)
+
 # Triggers
 
 The triggers are represented by the green and red LED's.  These will be used for toubleshooting, testing set points (feedback), and communication acknowlagement through third party IOS platforms.
 
-# IOS platform
+# IOS platform(s)
 
-The selected IOT platform will be thingspeak.  Thingspeak has been chosen due to MQTT protocal, data analytic features (matlab), and already functioning IOS app and widget. (Note: this has not been explored with android device just yet)
+Several IOS platforms are currently being explored, Ubidots, Thingspeak and adafruit.
 
-In addition to features above, ThingTweat will also be explored.  This will allow for the user to have notifications set for specified devices on the data feed. 
+Adafruit 
+
+Pros 
+- Ease of use
+- interface
+- library
+
+cons
+- restriction/ throttle on data
+- limited analalytics
+
+Thingspeak
+
+pros
+- Ease of use
+- data analytics (matplot)
+- IOS wiget
+
+Cons 
+- Visual appearence
+- App 
+
+Ubidots
+
+(just begining to explore this option)
+
 
 # MCu
 

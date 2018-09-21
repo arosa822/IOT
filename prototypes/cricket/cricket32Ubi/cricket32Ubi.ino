@@ -5,6 +5,39 @@
 // https://www.controleverything.com/content/Humidity?sku=SI7020-A20_I2CS#tabs-0-product_tabset-2
 
 #include "config.h"
+#include <ESP8266WiFi.h>
+
+const char* DEVICE_LABEL = "feather-huzzah"; // Your device label
+const char* VARIABLE_LABEL = "temperature"; // Your variable label
+const char* USER_AGENT = "ESP8266";
+const char* VERSION = "1.0";
+const char* HTTPSERVER = "industrial.api.ubidots.com";
+int HTTPPORT = 80;
+
+WiFiClient clientUbi;
+
+/********************************
+ * Auxiliar Functions
+ *******************************/
+/**
+ * Gets the length of the body
+ * @arg variable the body of type char
+ * @return dataLen the length of the variable
+ */
+
+int dataLen(char* variable) {
+  uint8_t dataLen = 0;
+  for (int i = 0; i <= 250; i++) {
+    if (variable[i] != '\0') {
+      dataLen++;
+    } else {
+      break;
+    }
+  }
+  return dataLen;
+
+}
+
 
     float temp;
     float ctemp;
@@ -17,8 +50,21 @@ void setup()
 {
   // Initialise I2C communication as MASTER
   Wire.begin();
+  
   // Initialise serial communication, set baud rate = 9600
   Serial.begin(9600);
+
+  WiFi.begin(SSID_NAME, SSID_PASS);
+
+        while (WiFi.status() != WL_CONNECTED) {
+            delay(500);
+             Serial.print(".");
+        }
+
+        WiFi.setAutoReconnect(true);
+        Serial.println(F("WiFi connected"));
+        Serial.println(F("IP address: "));
+        Serial.println(WiFi.localIP());
 
 }
 

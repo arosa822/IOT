@@ -8,6 +8,8 @@
 #include <ESP8266WiFi.h>
 #include "UbidotsESPMQTT.h"
 #include <SoftwareSerial.h> 
+#include <ESP8266HTTPClient.h>
+#include <ArduinoJson.h>
 
 int HTTPPORT = 80;
 
@@ -22,6 +24,10 @@ WiFiClient clientUbi;
     float ppm;
     unsigned int sensorData[2];
     
+    char buffer[500];
+    String response;
+    const char* ubidots = "http://things.ubidots.com/api/v1.6/variables";
+
 
 //Ubidots client(TOKEN);
 
@@ -70,25 +76,44 @@ void setup()
 
 
     pinMode(rly,OUTPUT);
+    digitalWrite(rly,LOW);
     //digitalWrite(rly,LOW);
+    pinMode(12,OUTPUT);
+    digitalWrite(12,HIGH);
 
 }
 
 void loop()
 {
+    
 
     GetTempHumid();
-        delay(500);
+
+        //feedback control for relay 
+        if (humidity > 50){
+            digitalWrite(rly, HIGH);
+        }
+        else 
+            if(humidity< 45){
+
+            digitalWrite(rly,LOW);
+        }
+
+    delay(500);
 
     GetGas();
-        delay(500);
+
+    delay(500);
     
     //put this into it's own time state 
+    
     postData(humidity,"humidity"); 
+
     postData(ftemp,"temperature");
+        
     postData(ppm,"gas");
 
-
+    GETRequest(ubidots,DEVICE_ID,TOKEN);
 
 
 }
@@ -221,4 +246,49 @@ void postData(float theData, const char* theVARIABLE_LABEL){
     clientUbi.stop();
     /* Five second delay */
     delay(5000);
+}
+
+void GETRequest(const char* theServer, 
+                const char* theID, 
+                const char* theToken){
+
+    //Create object of class HTTPClient
+    HTTPClient http;
+
+    int n;
+
+    n = sprintf(buffer,"http://things.ubidots.com/api/v1.6/devices/relay/relay/lv?token=%s",theToken);
+
+    Serial.println(buffer);
+
+    //call the 'begin' method and pass through the URL
+    http.begin(buffer);
+    int httpCode = http.GET(); 
+
+    String thePayload = http.getString();
+
+    Serial.println(thePayload);
+
+    //parseJson(thePayload);
+
+    Serial.println("");
+
+    http.end();
+
+}
+
+void parseJson(String thePayload){
+    StaticJsonBuffer<200> jsonBuffer;
+
+    JsonObject& root = jsonBuffer.parseObject(thePayload);
+
+    // Test if parsing succeeds.
+    if (!root.success()) {
+        Serial.println("parseObject() failed");
+        return;
+    }
+
+    const char* sensor = root["results"];
+
+Serial.println(sensor);
 }

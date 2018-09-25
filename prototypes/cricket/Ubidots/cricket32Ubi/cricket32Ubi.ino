@@ -28,6 +28,8 @@ WiFiClient clientUbi;
     String response;
     const char* ubidots = "http://things.ubidots.com/api/v1.6/variables";
 
+    unsigned long previousMillis = 0;
+    const long postInt = 1000*30; 
 
 //Ubidots client(TOKEN);
 
@@ -79,12 +81,13 @@ void setup()
     digitalWrite(rly,LOW);
     //digitalWrite(rly,LOW);
     pinMode(12,OUTPUT);
-    digitalWrite(12,HIGH);
+    digitalWrite(12,LOW);
 
 }
 
 void loop()
 {
+    unsigned long currentMillis = millis();
     
 
     GetTempHumid();
@@ -106,14 +109,28 @@ void loop()
     delay(500);
     
     //put this into it's own time state 
-    
-    postData(humidity,"humidity"); 
 
-    postData(ftemp,"temperature");
-        
-    postData(ppm,"gas");
+    //Control from Ubidots
+    response = GETRequest(LABEL_DEVICE,VARIABLE_LABEL,TOKEN);
 
-    GETRequest(ubidots,DEVICE_ID,TOKEN);
+    if (response == "1.0"){
+        digitalWrite(12, HIGH);
+    }
+    else if (response == "0.0"){
+        digitalWrite(12, LOW);
+    }
+
+    if (currentMillis - previousMillis >= postInt){
+
+        postData(humidity,"humidity"); 
+
+        postData(ftemp,"temperature");
+            
+        postData(ppm,"gas");
+
+        previousMillis = currentMillis;
+
+    }
 
 
 }
@@ -248,16 +265,16 @@ void postData(float theData, const char* theVARIABLE_LABEL){
     delay(5000);
 }
 
-void GETRequest(const char* theServer, 
-                const char* theID, 
-                const char* theToken){
+String GETRequest(const char* theLABEL, 
+                const char* theVARIABLE, 
+                const char* theTOKEN){
 
     //Create object of class HTTPClient
     HTTPClient http;
 
     int n;
 
-    n = sprintf(buffer,"http://things.ubidots.com/api/v1.6/devices/relay/relay/lv?token=%s",theToken);
+    n = sprintf(buffer,"http://things.ubidots.com/api/v1.6/devices/%s/%s/lv?token=%s",theLABEL,theVARIABLE,theTOKEN);
 
     Serial.println(buffer);
 
@@ -269,11 +286,22 @@ void GETRequest(const char* theServer,
 
     Serial.println(thePayload);
 
-    //parseJson(thePayload);
+    parseJson(thePayload);
 
     Serial.println("");
 
+    //test for conditions 
+    
+    if (thePayload == "0.0"){
+        Serial.println("turning off device!");
+    }
+    else if (thePayload == "1.0"){
+        Serial.println("turning on the device!");
+    }
+
     http.end();
+
+    return thePayload;
 
 }
 

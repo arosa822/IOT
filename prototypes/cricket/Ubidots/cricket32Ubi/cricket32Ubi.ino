@@ -94,12 +94,12 @@ void loop()
 
         //feedback control for relay 
         if (humidity > 50){
-            digitalWrite(rly, HIGH);
+            digitalWrite(12, HIGH);
         }
         else 
             if(humidity< 45){
 
-            digitalWrite(rly,LOW);
+            digitalWrite(12,LOW);
         }
 
     delay(500);
@@ -107,6 +107,11 @@ void loop()
     GetGas();
 
     delay(500);
+
+    Serial.println(ftemp);
+    Serial.println(humidity);
+    Serial.println(ppm);
+
     
     //put this into it's own time state 
 
@@ -114,18 +119,16 @@ void loop()
     response = GETRequest(LABEL_DEVICE,VARIABLE_LABEL,TOKEN);
 
     if (response == "1.0"){
-        digitalWrite(12, HIGH);
+        digitalWrite(rly, HIGH);
     }
     else if (response == "0.0"){
-        digitalWrite(12, LOW);
+        digitalWrite(rly, LOW);
     }
 
     if (currentMillis - previousMillis >= postInt){
 
         postData(humidity,"humidity"); 
-
-        postData(ftemp,"temperature");
-            
+        postData(ftemp,"temperature");       
         postData(ppm,"gas");
 
         previousMillis = currentMillis;
@@ -286,18 +289,19 @@ String GETRequest(const char* theLABEL,
 
     Serial.println(thePayload);
 
-    parseJson(thePayload);
+    
 
     Serial.println("");
 
     //test for conditions 
-    
+    /*
     if (thePayload == "0.0"){
         Serial.println("turning off device!");
     }
     else if (thePayload == "1.0"){
         Serial.println("turning on the device!");
     }
+    */
 
     http.end();
 

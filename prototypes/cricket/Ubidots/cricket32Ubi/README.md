@@ -4,16 +4,17 @@
 This folder contains a functional prototype including hardware setup and code base for demo'ing purposes. 
 Ubidots has been selected due to it's white label service and automatic creation of feeds when devices are connected. 
 
+# About
+This prototype is in the alpha stage of conceptualization, the idea is to have a light weight wireless module complete with OTA, Low Power and temp/ humidity feedback trigers. 
+
+Two LED lights will be attached to pins for debugging.  The one of the lights will be for debugging purposes during OTA flashing.  One will be used to demonstrate triggers and wireless controls (i.e. phone apps or BLE)
+
 # Method for scaling
 Firmware will be written in two sections 1) Operation and 2) keys and configuration.
 Python or golang will be used to create individual configuration files that will be unique for each device, by splitting the code into sections described above, I will be able to assign unique keys and feed variables specific for each device.
 
 The other problem that will need to be solved is the method for connecting to the internet - wifimanager will be used to create an AP so that the end user can manually set wifi parameters without having to flash the device. (this is currently being developed).  
 
-# About
-This prototype is in the alpha stage of conceptualization, the idea is to have a light weight wireless module complete with OTA, Low Power and temp/ humidity feedback trigers. 
-
-Two LED lights will be attached to pins for debugging.  The one of the lights will be for debugging purposes during OTA flashing.  One will be used to demonstrate triggers and wireless controls (i.e. phone apps or BLE)
 
 # Triggers
 
@@ -65,7 +66,9 @@ The choice Mcu for this project is an adafruit feather ESP8266 Dev board, MRP is
 
 This project aims to KSS (Keep it simple stupide), the setup proposed should have all the necessary components to test IOT integration and data integrity. (Not the most accurate temp humidity sensor, but good enough for testing critical functions in firmware developement.)
 
-
+# Breakout
+![Front](front.png)
+![Back](back.png)
 
 
 # Sensors

@@ -64,7 +64,7 @@ Cons
 
 The choice Mcu for this project is an adafruit feather ESP8266 Dev board, MRP is  15 - $20. Other cheeper versions were explored but this was the only one functioning properly for Over the air flashing- flash size requirements of the ESP8266 must be 4MB or larger (double check this).
 
-This project aims to KSS (Keep it simple stupide), the setup proposed should have all the necessary components to test IOT integration and data integrity. (Not the most accurate temp humidity sensor, but good enough for testing critical functions in firmware developement.)
+This project aims to KSS (Keep it simple stupid), the setup proposed should have all the necessary components to test IOT integration and data integrity. (Not the most accurate temp humidity sensor, but good enough for testing critical functions in firmware developement.)
 
 # Breakout
 ![Front](front.png)

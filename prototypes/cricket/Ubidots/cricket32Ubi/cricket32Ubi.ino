@@ -1,8 +1,4 @@
-// Distributed with a free-will license.
-// Use it any way you want, profit or free, provided it fits in the licenses of its associated works.
-// SI7020-A20
-// This code is designed to work with the SI7020-A20_I2CS I2C Mini Module available from ControlEverything.com.
-// https://www.controleverything.com/content/Humidity?sku=SI7020-A20_I2CS#tabs-0-product_tabset-2
+//Created By Alex Rosa 10/12/18
 
 #include "config.h"
 #include <ESP8266WiFi.h>
